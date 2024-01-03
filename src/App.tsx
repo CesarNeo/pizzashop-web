@@ -1,5 +1,12 @@
+import { Button } from './components/ui/button'
+import './global.css'
+
 function App() {
-  return <h1>Hello World!</h1>
+  return (
+    <div className="flex justify-center items-center h-screen">
+      <Button>Click me!</Button>
+    </div>
+  )
 }
 
 export default App
