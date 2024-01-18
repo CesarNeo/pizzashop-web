@@ -1,11 +1,14 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { getManagedRestaurant } from '@/api'
-import { updateProfile } from '@/api/update-profile'
+import {
+  getManagedRestaurant,
+  GetManagedRestaurantResponse,
+  updateProfile,
+} from '@/api'
 
 import { Button } from './ui/button'
 import {
@@ -22,12 +25,13 @@ import { Textarea } from './ui/textarea'
 
 const storeProfileSchema = z.object({
   name: z.string().min(1),
-  description: z.string(),
+  description: z.string().nullable(),
 })
 
 type StoreProfileSchema = z.infer<typeof storeProfileSchema>
 
 function StoreProfileDialog() {
+  const queryClient = useQueryClient()
   const { data: managedRestaurant } = useQuery({
     queryKey: ['managed-restaurant'],
     queryFn: getManagedRestaurant,
@@ -46,8 +50,39 @@ function StoreProfileDialog() {
     },
   })
 
+  function updateManagedRestaurantCached({
+    name,
+    description,
+  }: StoreProfileSchema) {
+    const managedRestaurantCached =
+      queryClient.getQueryData<GetManagedRestaurantResponse>([
+        'managed-restaurant',
+      ])
+
+    if (managedRestaurantCached) {
+      queryClient.setQueryData<GetManagedRestaurantResponse>(
+        ['managed-restaurant'],
+        {
+          ...managedRestaurantCached,
+          name,
+          description,
+        },
+      )
+    }
+
+    return { managedRestaurantCached }
+  }
+
   const { mutateAsync: updateProfileFn } = useMutation({
     mutationFn: updateProfile,
+    onMutate({ name, description }) {
+      return updateManagedRestaurantCached({ name, description })
+    },
+    onError(_, __, context) {
+      if (context?.managedRestaurantCached) {
+        updateManagedRestaurantCached(context.managedRestaurantCached)
+      }
+    },
   })
 
   const onSubmit = handleSubmit(async ({ name, description }) => {
