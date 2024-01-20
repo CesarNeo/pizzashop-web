@@ -3,7 +3,7 @@ import { Helmet } from 'react-helmet-async'
 import { useSearchParams } from 'react-router-dom'
 import { z } from 'zod'
 
-import { getOrders } from '@/api'
+import { getOrders, Order } from '@/api'
 import Pagination from '@/components/pagination'
 import {
   Table,
@@ -22,10 +22,13 @@ function Orders() {
     .number()
     .transform((page) => page - 1)
     .parse(searchParams.get('page') ?? 1)
+  const orderId = searchParams.get('orderId')
+  const customerName = searchParams.get('customerName')
+  const status = searchParams.get('status') as Order['status'] | 'all'
 
   const { data: resultOrders } = useQuery({
-    queryKey: ['orders', pageIndex],
-    queryFn: () => getOrders({ pageIndex }),
+    queryKey: ['orders', pageIndex, orderId, customerName, status],
+    queryFn: () => getOrders({ pageIndex, customerName, orderId, status }),
   })
 
   function handlePaginate(pageIndex: number) {
