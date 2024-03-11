@@ -5,7 +5,7 @@ import { UpdateProfileBody } from '../update-profile'
 export const updateProfileMock = http.put<never, UpdateProfileBody>(
   'profile',
   async ({ request }) => {
-    const { name, description } = await request.json()
+    const { name } = await request.json()
 
     if (name === 'Pizza Shop Updated') {
       return new HttpResponse(null, { status: 204 })
