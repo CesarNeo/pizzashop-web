@@ -9,6 +9,7 @@ export const updateProfileMock = http.put<never, UpdateProfileBody>(
 
     if (name === 'Pizza Shop Updated') {
       return new HttpResponse(null, { status: 204 })
+      console.log('')
     }
 
     return new HttpResponse(null, { status: 400 })
